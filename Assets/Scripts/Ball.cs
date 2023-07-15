@@ -1,23 +1,42 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class Ball : MonoBehaviour
 {
     public Rigidbody2D rb;
     public LineRenderer lr;
     
-    public float maxPower = 10f;
-    public float power = 2f;
-    public float goalSpeed = 4f;
+    public float maxPower;
+    public float maxLineLength;
+    public float power;
+    public float goalSpeed;
+    public GolfManager gm;
+    public DamageManager dm;
+    //public PlayerManager pm;
+    public GameObject goalFX;
 
     private bool isDragging;
     private bool inHole;
+    private bool roundDone = false;
+    
 
     // Update is called once per frame
     void Update()
     {
         PlayerInput();
+        if (gm.strokes == gm.maxStrokes && !roundDone)
+        {
+            roundDone = true;
+            roundCalc();
+        }
+
+        if (inHole && !roundDone)
+        {
+            roundDone = true;
+            roundCalc();
+        }
     }
 
     void PlayerInput()
@@ -44,25 +63,125 @@ public class Ball : MonoBehaviour
     void dragChange(Vector2 pos)
     {
         Vector2 dir = (Vector2)transform.position - pos;
+        float distance = Mathf.Clamp(dir.magnitude, 0f, maxPower);
+
+        // Check if the distance exceeds the maximum line length
+        if (distance > maxLineLength)
+        {
+            distance = maxLineLength;
+            dir = dir.normalized * distance;
+        }
+
+        // Calculate the normalized distance between 0 and 1
+        float normalizedDistance = distance / maxPower;
+
+        // Define color keys for the gradient
+        GradientColorKey[] colorKeys = new GradientColorKey[4];
+        colorKeys[0].color = Color.green;               // Start color
+        colorKeys[0].time = 0f;
+        colorKeys[1].color = Color.yellow;              // Mid color
+        colorKeys[1].time = 0.33f;
+        colorKeys[2].color = new Color(1f, 0.5f, 0f);    // Orange (RGB values)
+        colorKeys[2].time = 0.66f;
+        colorKeys[3].color = Color.red;                 // End color
+        colorKeys[3].time = 1f;
+
+        // Define alpha keys for the gradient
+        GradientAlphaKey[] alphaKeys = new GradientAlphaKey[2];
+        alphaKeys[0].alpha = 1f;
+        alphaKeys[0].time = 0f;
+        alphaKeys[1].alpha = 1f;
+        alphaKeys[1].time = 1f;
+
+        // Create the gradient
+        Gradient gradient = new Gradient();
+        gradient.SetKeys(colorKeys, alphaKeys);
+
+        // Interpolate the color based on the normalized distance
+        Color lerpedColor = gradient.Evaluate(normalizedDistance);
+
+        // Set the color for the LineRenderer
+        lr.startColor = lerpedColor;
+        lr.endColor = lerpedColor;
+
+        // Update the LineRenderer points
         lr.SetPosition(0, transform.position);
-        lr.SetPosition(1, (Vector2)transform.position + Vector2.ClampMagnitude((dir * power) / 2, maxPower / 2 ));
+        lr.SetPosition(1, (Vector2)transform.position + dir);
     }
+
 
     void dragRelease(Vector2 pos)
     {
         float distance = Vector2.Distance((Vector2)transform.position, pos);
         isDragging = false;
         lr.positionCount = 0;
-        if (distance < 1f)
+        if (distance < .2f)
             return;
         
         Vector2 dir = (Vector2)transform.position - pos;
 
         rb.velocity = Vector2.ClampMagnitude(dir * power, maxPower);
+        gm.UpdateStrokes();
     }
 
     bool isStill()
     {
         return rb.velocity.magnitude <= 0.5f;
+    }
+
+    void speedCheck()
+    {
+        if (inHole)
+            return;
+        if (rb.velocity.magnitude <= goalSpeed)
+        {
+            inHole = true;
+            rb.velocity = Vector2.zero;
+            gameObject.SetActive(false);
+            GameObject fx = Instantiate(goalFX, transform.position, Quaternion.identity);
+            Destroy(fx, 1f);
+            roundCalc();
+        }
+    }
+
+    void roundCalc()
+    {
+        Debug.Log("roundCalc");
+        Debug.Log(inHole);
+
+        float damage = 0f;
+        if((gm.strokes == gm.maxStrokes) && !inHole)
+        {
+            damage = dm.damage(2f);
+        }
+        else if((gm.strokes != gm.maxStrokes) && inHole && gm.strokes != gm.par)
+        {
+            damage = dm.damage(1.5f);
+        }
+        else if(gm.strokes > gm.par)
+        {
+            damage = dm.damage(1f);
+        }
+        else if(gm.strokes <= gm.par)
+        {
+            damage = dm.damage(0);
+        }
+
+        PlayerManager.instance.Damage((int)damage);
+        gm.healthUpdate();
+
+        SceneManager.LoadScene("OverWorld 1");
+    }
+
+    void OnTriggerEnter2D(Collider2D other) 
+    {
+        if (other.tag == "goal")
+            speedCheck();
+    }
+
+    void OnTriggerStay2D(Collider2D other) 
+    {
+        if (other.tag == "goal")
+            speedCheck();
     }
 }
