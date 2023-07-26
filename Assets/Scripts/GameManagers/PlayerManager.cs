@@ -9,6 +9,7 @@ public class PlayerManager : MonoBehaviour
     public int maxHealth;
     public int healthPotions;
     public int maxHealthPotions;
+    //public UI ui;
 
     private void Awake()
     {
@@ -26,5 +27,23 @@ public class PlayerManager : MonoBehaviour
     public void Damage(int damage)
     {
         currentHealth -= damage;
+    }
+
+    public void Heal()
+    {
+        if(currentHealth != maxHealth)
+        {   
+            int healthRate = maxHealth - currentHealth;
+            Debug.Log(healthRate);
+            if(healthRate >= 30 && healthPotions != 0)
+            { 
+                currentHealth += 30;
+            }
+            else
+                currentHealth = maxHealth;
+
+            healthPotions --;
+        }
+        Debug.Log(currentHealth);
     }
 }

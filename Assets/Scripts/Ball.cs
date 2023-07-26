@@ -150,7 +150,11 @@ public class Ball : MonoBehaviour
         Debug.Log(inHole);
 
         float damage = 0f;
-        if((gm.strokes == gm.maxStrokes) && !inHole)
+        if(gm.strokes <= gm.par)
+        {
+            damage = dm.damage(0);
+        }
+        else if((gm.strokes == gm.maxStrokes) && !inHole)
         {
             damage = dm.damage(2f);
         }
@@ -162,14 +166,16 @@ public class Ball : MonoBehaviour
         {
             damage = dm.damage(1f);
         }
-        else if(gm.strokes <= gm.par)
-        {
-            damage = dm.damage(0);
-        }
+        
 
         PlayerManager.instance.Damage((int)damage);
         gm.healthUpdate();
 
+        Invoke("ChangeScene", 1.5f);
+    }
+
+    void ChangeScene()
+    {
         SceneManager.LoadScene("OverWorld 1");
     }
 

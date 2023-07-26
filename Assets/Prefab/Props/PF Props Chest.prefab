@@ -11,7 +11,6 @@ GameObject:
   - component: {fileID: 2055102311959635375}
   - component: {fileID: 2055102311959635368}
   - component: {fileID: 2055102311959635374}
-  - component: {fileID: -7848853705501809085}
   m_Layer: 21
   m_Name: PF Props Chest
   m_TagString: Untagged
@@ -132,21 +131,6 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 0.93784136, y: 0.5620947}
   m_EdgeRadius: 0
---- !u!114 &-7848853705501809085
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2055102311959635369}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ba0d58f589c312045a1324fecbf38b63, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  closed: {fileID: 21300000, guid: 29c9cded5e558164aaf8c9bf08aa1510, type: 3}
-  open: {fileID: 21300040, guid: 29c9cded5e558164aaf8c9bf08aa1510, type: 3}
-  locked: 0
 --- !u!1 &2055102312182832482
 GameObject:
   m_ObjectHideFlags: 0

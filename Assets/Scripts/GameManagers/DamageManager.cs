@@ -11,6 +11,7 @@ public class DamageManager : MonoBehaviour
         float damage;
 
         damage = baseDamage * damageMultiplier;
+        Debug.Log(damageMultiplier);
         return (int)damage;
     }
 }
