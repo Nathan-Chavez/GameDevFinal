@@ -6,8 +6,6 @@ using TMPro;
 public class GolfManager : MonoBehaviour
 {
     public TextMeshProUGUI strokeText;
-    public TextMeshProUGUI playerHealth;
-    public TextMeshProUGUI potions;
     public TextMeshProUGUI parText;
     public int maxStrokes;
     public int strokes;
@@ -15,9 +13,7 @@ public class GolfManager : MonoBehaviour
 
     void Awake()
     {
-        playerHealth.text = "Health - " + PlayerManager.instance.currentHealth.ToString();
         strokeText.text = "Stroke " + "0/" + maxStrokes.ToString();
-        potions.text = "Potions - " + PlayerManager.instance.healthPotions.ToString();
         parText.text = "Par - " + par.ToString();
 
     }
@@ -40,10 +36,5 @@ public class GolfManager : MonoBehaviour
         {
             
         }
-    }
-
-    public void healthUpdate()
-    {
-        playerHealth.text = "Health - " + PlayerManager.instance.currentHealth.ToString();
     }
 }

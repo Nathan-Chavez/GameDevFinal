@@ -169,7 +169,6 @@ public class Ball : MonoBehaviour
         
 
         PlayerManager.instance.Damage((int)damage);
-        gm.healthUpdate();
 
         Invoke("ChangeScene", 1.5f);
     }
