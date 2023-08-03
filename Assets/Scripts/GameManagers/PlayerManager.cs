@@ -5,14 +5,17 @@ using UnityEngine;
 public class PlayerManager : MonoBehaviour
 {
     public static PlayerManager instance;
+    private PlayerRespawn pr;
     public int currentHealth;
     public int maxHealth;
     public int healthPotions;
     public int maxHealthPotions;
+    
     //public UI ui;
 
     private void Awake()
     {
+        pr = FindObjectOfType<PlayerRespawn>();
         if (instance == null)
         {
             instance = this;
@@ -27,6 +30,10 @@ public class PlayerManager : MonoBehaviour
     public void Damage(int damage)
     {
         currentHealth -= damage;
+        if (currentHealth <= 0)
+        {
+            pr.LoadOnDeath();
+        }
     }
 
     public void Heal()
