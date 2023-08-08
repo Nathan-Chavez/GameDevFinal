@@ -14,14 +14,19 @@ public class Ball : MonoBehaviour
     public float goalSpeed;
     public GolfManager gm;
     public DamageManager dm;
+    //public EnemyType enemy;
     //public PlayerManager pm;
     public GameObject goalFX;
 
     private bool isDragging;
     private bool inHole;
     private bool roundDone = false;
-    
 
+    void Start()
+    {
+        
+
+    }
     // Update is called once per frame
     void Update()
     {
@@ -169,13 +174,24 @@ public class Ball : MonoBehaviour
         
 
         PlayerManager.instance.Damage((int)damage);
-
-        Invoke("ChangeScene", 1.5f);
+        
+        if (SceneManagerScript.Instance.bossLevelNum < SceneManagerScript.Instance.LastBossEnemyType.bossLevels.Length)
+        {
+            string bossLevelToLoad = SceneManagerScript.Instance.LastBossEnemyType.bossLevels[SceneManagerScript.Instance.bossLevelNum];
+            SceneManagerScript.Instance.bossLevelNum++;
+            Debug.Log(bossLevelToLoad);
+            SceneManager.LoadScene(bossLevelToLoad);
+        }
+        else
+        {
+            // Load the Overworld1 scene
+            ChangeScene("Overworld 1");
+        }
     }
 
-    void ChangeScene()
+    void ChangeScene(string scene)
     {
-        SceneManager.LoadScene("OverWorld 1");
+        SceneManager.LoadScene(scene);
     }
 
     void OnTriggerEnter2D(Collider2D other) 
@@ -189,4 +205,9 @@ public class Ball : MonoBehaviour
         if (other.tag == "goal")
             speedCheck();
     }
+
+    IEnumerator WaitForFunction()
+{
+    yield return new WaitForSeconds(1.5f);
+}
 }
