@@ -34,6 +34,7 @@ public class AudioSettings : MonoBehaviour
         //SetMusicVolume();
         //SetSFXVolume();    
     }
+    
     void SetVolume(string name, float value)
     {
         float volume = Mathf.Log10(value) * 20;

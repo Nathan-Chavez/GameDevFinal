@@ -1,11 +1,13 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class MainMenu : MonoBehaviour
 {
     public GameObject playSubMenu; // Reference to the Play Sub Menu GameObject
     public GameObject settingsMenu;
+    public PlayerRespawn pr;
 
     private void Start()
     {
@@ -50,12 +52,35 @@ public class MainMenu : MonoBehaviour
 
     public void OnLoadGameButtonPressed()
     {
-        CheckpointManager.instance.LoadGameFromMainMenu();
+        if (CheckpointManager.instance != null)
+        {
+            Debug.Log("Load Start");
+            SceneManager.LoadScene("Overworld 1");
+            //CheckpointManager.instance.LoadGameFromMainMenu();
+            StartCoroutine(ExecuteAfterSceneLoad());
+        }
+        else
+        {
+            Debug.Log("CheckpointManager instance is null.");
+        }
+    }
+
+    private IEnumerator ExecuteAfterSceneLoad()
+    {
+        yield return new WaitForEndOfFrame(); // Wait for the end of the frame
+        pr.LoadLastCheckpoint();
     }
 
     public void OnNewGameButtonPressed()
     {
-        CheckpointManager.instance.NewGameFromMainMenu();
+        if (CheckpointManager.instance != null)
+        {
+            CheckpointManager.instance.NewGameFromMainMenu();
+        }
+        else
+        {
+            Debug.Log("CheckpointManager instance is null.");
+        }
     }
 
     public void Quit()

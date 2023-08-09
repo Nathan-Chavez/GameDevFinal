@@ -6,6 +6,8 @@ using System.Collections;
 public class CheckpointManager : MonoBehaviour
 {
     public static CheckpointManager instance; // Singleton instance reference.
+    public PlayerRespawn pr;
+    private GameObject player;
     private UI ui;
 
     private string savePath;
@@ -77,6 +79,7 @@ public class CheckpointManager : MonoBehaviour
 
     public void LoadGame()
     {
+        Debug.Log(savePath);
         if (File.Exists(savePath))
         {
             string json = File.ReadAllText(savePath);
@@ -85,6 +88,9 @@ public class CheckpointManager : MonoBehaviour
             // Apply the loaded data to the player.
             PlayerManager.instance.currentHealth = saveData.playerHealth;
             PlayerManager.instance.healthPotions = saveData.currentPotions;
+
+            Debug.Log(saveData.sceneName);
+            Debug.Log("In LoadGame");
             // Find the player GameObject in the scene
             GameObject player = GameObject.FindWithTag("Player");
             if (player != null)
@@ -92,6 +98,7 @@ public class CheckpointManager : MonoBehaviour
                 // Apply the loaded position to the player
                 Vector3 playerPosition = new Vector3(saveData.playerPosX, saveData.playerPosY, saveData.playerPosZ);
                 player.transform.position = playerPosition;
+                Debug.Log(player.name);
             }
             else
             {
@@ -102,32 +109,66 @@ public class CheckpointManager : MonoBehaviour
             if (camera != null)
             {
                 // Apply the loaded position to the player
-                Vector3 cameraPosition = new Vector3(saveData.playerPosX, saveData.playerPosY, -10);
+                Vector3 cameraPosition = new Vector3(saveData.camPosX, saveData.camPosY, -10);
                 camera.transform.position = cameraPosition;
             }
             else
             {
                 Debug.LogWarning("Camera GameObject not found in the scene. Position not applied.");
             }
+            //Debug.Log(saveData.playerPosX);
             
+            //SceneManager.LoadScene(saveData.sceneName);
+            Debug.Log(saveData.playerPosX);
+            Debug.Log(saveData.playerPosY);
             ui.UpdateUI();
-            // Apply other loaded data to the PlayerManager.
+
         }
-        else
+    }
+
+    public void SetPlayerAndCameraPositions(Vector3 playerPosition, Vector3 cameraPosition)
+    {
+        GameObject player = GameObject.FindWithTag("Player");
+        if (player != null)
         {
-            Debug.Log("Save file not found.");
+            player.transform.position = playerPosition;
+        }
+
+        GameObject camera = GameObject.FindWithTag("MainCamera");
+        if (camera != null)
+        {
+            camera.transform.position = cameraPosition;
         }
     }
 
     public void LoadGameFromMainMenu()
     {
-        if (File.Exists(savePath))
+        string json = File.ReadAllText(savePath);
+        SaveData saveData = JsonUtility.FromJson<SaveData>(json);
+        SaveData loadData = saveData;
+        //Debug.Log(saveData);
+        StartCoroutine(LoadGameCoroutine(loadData));
+    }
+
+    private IEnumerator LoadGameCoroutine(SaveData saveData)
+    {
+        // Load the scene asynchronously
+        AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(saveData.sceneName);
+        //Debug.Log(saveData.playerPosX);
+        // Wait until the scene is fully loaded
+        while (!asyncLoad.isDone)
         {
-            string json = File.ReadAllText(savePath);
-            SaveData saveData = JsonUtility.FromJson<SaveData>(json);
-            SceneManager.LoadScene(saveData.sceneName);
-            LoadGame();
+            yield return null;
         }
+
+        // Scene is now fully loaded, proceed with the rest of the code
+        Debug.Log(saveData.playerPosX);
+        //player = GameObject.FindGameObjectWithTag("Player");
+        //Vector3 playerPosition = new Vector3(saveData.playerPosX, saveData.playerPosY, saveData.playerPosZ);
+        //player.transform.position = playerPosition;
+
+
+        LoadGame();
     }
 
     public void NewGameFromMainMenu()
@@ -145,11 +186,24 @@ public class CheckpointManager : MonoBehaviour
             sceneName = "Overworld 1",
         };
 
-        string json = JsonUtility.ToJson(saveData);
-        File.WriteAllText(savePath, json);
-        saveData = JsonUtility.FromJson<SaveData>(json);
-        SceneManager.LoadScene(saveData.sceneName);
-        LoadGame();
+        Debug.Log(saveData.playerPosX);
+        StartCoroutine(LoadSceneAndSaveData(saveData));
     }
     
+    private IEnumerator LoadSceneAndSaveData(SaveData saveData)
+    {
+        // Load the scene asynchronously
+        AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(saveData.sceneName);
+
+        // Wait until the scene is fully loaded
+        while (!asyncLoad.isDone)
+        {
+            yield return null;
+        }
+
+        // Scene is now fully loaded, proceed with the rest of the code
+        string json = JsonUtility.ToJson(saveData);
+        File.WriteAllText(savePath, json);
+        LoadGame();
+    }
 }

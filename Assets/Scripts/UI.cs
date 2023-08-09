@@ -50,6 +50,7 @@ public class UI : MonoBehaviour
 
     public void UpdateUI()
     {
+        
         healthText.text = "Health - " + PlayerManager.instance.currentHealth.ToString();
         potionText.text = "Potions - " + PlayerManager.instance.healthPotions.ToString();
     }

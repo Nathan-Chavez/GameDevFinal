@@ -40,6 +40,7 @@ namespace Cainos.PixelArtTopDown_Basic
                 if (checkpointManager != null)
                 {
                     checkpointManager.SaveGame();
+                    UI.instance.UpdateUI();
                     Debug.Log("Checkpoint set");
                 }
                 else
