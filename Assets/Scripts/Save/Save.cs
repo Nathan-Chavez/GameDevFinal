@@ -15,7 +15,4 @@ public class SaveData
     public int playerHealth;
     public int currentPotions;
     public string sceneName;
-
-
-    // Add any other data you want to save.
 }

@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.IO;
 using UnityEngine.SceneManagement;
+using System.Collections;
 
 public class CheckpointManager : MonoBehaviour
 {
@@ -31,6 +32,8 @@ public class CheckpointManager : MonoBehaviour
 
     public void SaveGame()
     {
+        PlayerManager.instance.currentHealth = PlayerManager.instance.maxHealth;
+        PlayerManager.instance.healthPotions = PlayerManager.instance.maxHealthPotions;
         // Find the player GameObject in the scene
         GameObject player = GameObject.FindWithTag("Player");
         if (player == null)
@@ -61,7 +64,6 @@ public class CheckpointManager : MonoBehaviour
             camPosY = cameraPosition.y,
             camPosZ = cameraPosition.z,
             sceneName = SceneManager.GetActiveScene().name,
-            // Add other data from PlayerManager that you want to save.
         };
         
         PlayerRespawn playerRespawn = FindObjectOfType<PlayerRespawn>();
@@ -70,6 +72,7 @@ public class CheckpointManager : MonoBehaviour
         string json = JsonUtility.ToJson(saveData);
         File.WriteAllText(savePath, json);
         Debug.Log("Data Saved");
+        ui.UpdateUI();
     }
 
     public void LoadGame()
@@ -106,6 +109,7 @@ public class CheckpointManager : MonoBehaviour
             {
                 Debug.LogWarning("Camera GameObject not found in the scene. Position not applied.");
             }
+            
             ui.UpdateUI();
             // Apply other loaded data to the PlayerManager.
         }
@@ -114,4 +118,38 @@ public class CheckpointManager : MonoBehaviour
             Debug.Log("Save file not found.");
         }
     }
+
+    public void LoadGameFromMainMenu()
+    {
+        if (File.Exists(savePath))
+        {
+            string json = File.ReadAllText(savePath);
+            SaveData saveData = JsonUtility.FromJson<SaveData>(json);
+            SceneManager.LoadScene(saveData.sceneName);
+            LoadGame();
+        }
+    }
+
+    public void NewGameFromMainMenu()
+    {
+        SaveData saveData = new SaveData
+        {
+            playerPosX = -5.25f,
+            playerPosY = .25f,
+            playerPosZ = 0f,
+            camPosX = -4f,
+            camPosY = .5f,
+            camPosZ = 0f,
+            playerHealth = 100,
+            currentPotions = 4,
+            sceneName = "Overworld 1",
+        };
+
+        string json = JsonUtility.ToJson(saveData);
+        File.WriteAllText(savePath, json);
+        saveData = JsonUtility.FromJson<SaveData>(json);
+        SceneManager.LoadScene(saveData.sceneName);
+        LoadGame();
+    }
+    
 }

@@ -40,16 +40,22 @@ public class PlayerManager : MonoBehaviour
     {
         if(currentHealth != maxHealth)
         {   
-            int healthRate = maxHealth - currentHealth;
-            Debug.Log(healthRate);
-            if(healthRate >= 30 && healthPotions != 0)
-            { 
-                currentHealth += 30;
+            if(healthPotions != 0)
+            {
+                int healthRate = maxHealth - currentHealth;
+                if(healthRate >= 30 && healthPotions != 0)
+                { 
+                    currentHealth += 30;
+                    healthPotions --;
+                }
+                else
+                {
+                    currentHealth = maxHealth;
+                    healthPotions --;
+                }
             }
-            else
-                currentHealth = maxHealth;
 
-            healthPotions --;
+            
         }
         Debug.Log(currentHealth);
     }
