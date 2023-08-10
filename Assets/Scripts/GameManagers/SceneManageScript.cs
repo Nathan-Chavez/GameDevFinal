@@ -27,6 +27,8 @@ public class SceneManagerScript : MonoBehaviour
     public void SetLastBossEnemyType(EnemyType enemyType)
     {
         LastBossEnemyType = enemyType;
-        Debug.Log(LastBossEnemyType.bossLevels[0]);
+        //Debug.Log(LastBossEnemyType.bossLevels[0]);
     }
+
+     
 }

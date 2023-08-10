@@ -12,6 +12,7 @@ public class EnemyType : MonoBehaviour
 
     public enum BossType
     {
+        Boss0,
         Boss1,
         Boss2,
         Boss3,

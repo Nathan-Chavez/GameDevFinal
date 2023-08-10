@@ -21,6 +21,7 @@ public class Ball : MonoBehaviour
     private bool isDragging;
     private bool inHole;
     private bool roundDone = false;
+    public AudioSource audioSource;
 
     void Start()
     {
@@ -126,6 +127,7 @@ public class Ball : MonoBehaviour
         Vector2 dir = (Vector2)transform.position - pos;
 
         rb.velocity = Vector2.ClampMagnitude(dir * power, maxPower);
+        audioSource.Play();
         gm.UpdateStrokes();
     }
 
@@ -137,7 +139,9 @@ public class Ball : MonoBehaviour
     void speedCheck()
     {
         if (inHole)
+        {   
             return;
+        }
         if (rb.velocity.magnitude <= goalSpeed)
         {
             inHole = true;
@@ -145,13 +149,31 @@ public class Ball : MonoBehaviour
             gameObject.SetActive(false);
             GameObject fx = Instantiate(goalFX, transform.position, Quaternion.identity);
             Destroy(fx, 1f);
+            /*if (inHole)
+            {   
+                Debug.Log("DisableEnemy() called");
+                DisableEnemy();
+            }*/
             roundCalc();
+        }
+    }
+
+    void DisableEnemy()
+    {
+        GameObject enemyObject = GameObject.FindGameObjectWithTag("Enemy");
+        Debug.Log(enemyObject + "help");
+        if (enemyObject != null)
+        {
+            Enemy enemy = enemyObject.GetComponent<Enemy>();
+            if (enemy != null)
+            {
+                enemy.Disable(); 
+            }
         }
     }
 
     void roundCalc()
     {
-        Debug.Log("roundCalc");
         Debug.Log(inHole);
 
         float damage = 0f;

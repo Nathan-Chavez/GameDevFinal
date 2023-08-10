@@ -2,15 +2,21 @@ using UnityEngine;
 using System.IO;
 using UnityEngine.SceneManagement;
 using System.Collections;
+using System.Collections.Generic;
+using System;
 
 public class CheckpointManager : MonoBehaviour
 {
     public static CheckpointManager instance; // Singleton instance reference.
     public PlayerRespawn pr;
+    private bool enemyHasBeenEncountered = false;
     private GameObject player;
     private UI ui;
 
     private string savePath;
+    private string enemyPath;
+
+    
 
     private void Awake()
     {
@@ -34,8 +40,8 @@ public class CheckpointManager : MonoBehaviour
 
     public void SaveGame()
     {
-        PlayerManager.instance.currentHealth = PlayerManager.instance.maxHealth;
-        PlayerManager.instance.healthPotions = PlayerManager.instance.maxHealthPotions;
+        //PlayerManager.instance.currentHealth = PlayerManager.instance.maxHealth;
+        //PlayerManager.instance.healthPotions = PlayerManager.instance.maxHealthPotions;
         // Find the player GameObject in the scene
         GameObject player = GameObject.FindWithTag("Player");
         if (player == null)
@@ -119,12 +125,45 @@ public class CheckpointManager : MonoBehaviour
             //Debug.Log(saveData.playerPosX);
             
             //SceneManager.LoadScene(saveData.sceneName);
-            Debug.Log(saveData.playerPosX);
-            Debug.Log(saveData.playerPosY);
-            ui.UpdateUI();
+
+            StartCoroutine(LoadGameCo(saveData));
 
         }
+        else
+            NewGameFromMainMenu();
     }
+
+    private IEnumerator LoadGameCo(SaveData saveData)
+    {
+        // Load the scene asynchronously
+        AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(saveData.sceneName);
+
+        // Wait until the scene is fully loaded
+        while (!asyncLoad.isDone)
+        {
+            yield return null;
+        }
+
+        // Set player and camera positions in the loaded scene
+        SetPlayerAndCameraPositions(new Vector3(saveData.playerPosX, saveData.playerPosY, saveData.playerPosZ), new Vector3(saveData.camPosX, saveData.camPosY, -10));
+        // Update UI
+        ui.UpdateUI();
+    }
+
+    private void DisableEnemyInOriginalScene()
+    {
+        // Disable enemy in the original scene
+        if (enemyHasBeenEncountered)
+        {
+            // Find and disable the enemy GameObject
+            GameObject enemy = GameObject.FindWithTag("Enemy");
+            if (enemy != null)
+            {
+                enemy.SetActive(false);
+            }
+        }
+    }
+
 
     public void SetPlayerAndCameraPositions(Vector3 playerPosition, Vector3 cameraPosition)
     {
@@ -189,9 +228,43 @@ public class CheckpointManager : MonoBehaviour
         Debug.Log(saveData.playerPosX);
         StartCoroutine(LoadSceneAndSaveData(saveData));
     }
+
+    public void EnableAllEnemies()
+    {
+        Debug.Log("In Enable");
+        // Find all GameObjects with the "Enemy" tag and re-enable them
+        GameObject[] enemies = Resources.FindObjectsOfTypeAll<GameObject>();
+        foreach (GameObject enemy in enemies)
+        {
+            Debug.Log("In Enable Loop");
+            string enemyKey = "HasBeenEncountered_" + enemy.name;
+            Debug.Log(enemyKey);
+            // Check if the enemy has been encountered before
+            if (enemy.CompareTag("Enemy") && !enemy.activeSelf)
+            {
+                if (PlayerPrefs.HasKey(enemyKey) && PlayerPrefs.GetInt(enemyKey) == 1)
+                {
+                    // Enable the enemy
+                    enemy.SetActive(true);
+                    
+                    // Reset the encounter status (optional)
+                    PlayerPrefs.SetInt(enemyKey, 0);
+                    PlayerPrefs.Save();
+
+                    Enemy enemyScript = enemy.GetComponent<Enemy>();
+                    if (enemyScript != null)
+                    {  
+                        enemyScript.ResetEncounterStatus();
+                    }
+                }
+            }
+            
+        }
+    }
     
     private IEnumerator LoadSceneAndSaveData(SaveData saveData)
     {
+        Debug.Log("Load and Save");
         // Load the scene asynchronously
         AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(saveData.sceneName);
 
@@ -202,6 +275,7 @@ public class CheckpointManager : MonoBehaviour
         }
 
         // Scene is now fully loaded, proceed with the rest of the code
+        EnableAllEnemies();
         string json = JsonUtility.ToJson(saveData);
         File.WriteAllText(savePath, json);
         LoadGame();
